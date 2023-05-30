@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bufio"
 	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -14,19 +16,38 @@ func main() {
 	config := loadConfig()
 	connStr := getConnectionString(config)
 
-	/*executeSingleQuery(connStr, `DROP TABLE IF EXISTS users`)
-
-	executeSingleQuery(connStr, `CREATE TABLE public.users
-	(
-		id bigint NOT NULL,
-		name text,
-		created date,
-		PRIMARY KEY (id)
-	);`)*/
-
-	//generateUsers(connStr, 100)
-	printData(connStr)
-	//executeSingleQuery(connStr, `DELETE FROM users`)
+	reader := bufio.NewReader(os.Stdin)
+	for {
+		fmt.Println(`
+		1 : DROP TABLE
+		2 : CREATE TABLE
+		3 : GENERATE USERS
+		4 : PRINT USERS
+		5 : DELETE USERS
+		`)
+		fmt.Print("Enter command: ")
+		text, _ := reader.ReadString('\n')
+		switch text {
+		case "1\n":
+			executeSingleQuery(connStr, `DROP TABLE IF EXISTS users`)
+		case "2\n":
+			executeSingleQuery(connStr, `CREATE TABLE public.users
+			(
+				id bigint NOT NULL,
+				name text,
+				created date,
+				PRIMARY KEY (id)
+			);`)
+		case "3\n":
+			generateUsers(connStr, 100)
+		case "4\n":
+			printData(connStr)
+		case "5\n":
+			executeSingleQuery(connStr, `DELETE FROM users`)
+		default:
+			return
+		}
+	}
 }
 
 type Config struct {
